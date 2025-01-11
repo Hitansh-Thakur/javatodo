@@ -1,0 +1,3 @@
+gitignore all .class files in all subdirectories of the current directory
+
+**/*.class
