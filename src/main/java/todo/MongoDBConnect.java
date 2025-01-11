@@ -4,32 +4,40 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertOneResult;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
+import java.nio.file.Paths;
 
 public class MongoDBConnect {
     public static MongoClient getMongoClient() {
-        String connectionString = "mongodb+srv://thakurhitansh4325:MGuYKHiY5Gw31WHw@grocery-delivery.bh1pj.mongodb.net/?retryWrites=true&w=majority&appName=grocery-delivery";
+//        get the connection string from the environment variable
+        Dotenv dotenv = Dotenv.load();
 
-        // Create a new client and connect to the server
-        try (MongoClient mongoClient = MongoClients.create(connectionString)) {
+//        System.setProperty("ConnectionString", dotenv.get("MONGODB_URI"));
+//        String connectionString = System.getProperty("ConnectionString");
+        String connectionString = dotenv.get("CONNECTION_URI");
+
+        if (connectionString == null) {
+            System.out.println("Connection String is null. Please check your environment variables.");
+            return null;
+        }
+
+        System.out.println("Connection String: " + connectionString);
+
+
+//        dont define the client inside the try block or it will not be accessible outside the block
+         MongoClient mongoClient = MongoClients.create(connectionString);
             try {
                 // Send a ping to confirm a successful connection
                 MongoDatabase database = mongoClient.getDatabase("javatodo");
                 var collection = database.getCollection("todos");
                 database.runCommand(new Document("ping", 1));
                 System.out.println("Pinged your deployment. You successfully connected to MongoDB!");
-
-                return mongoClient; // Return the client
+                return mongoClient;
             } catch (MongoException e) {
                 e.printStackTrace();
             }
-        }
-        catch (Exception e) {
-            System.out.println("Error in connecting to MongoDB: " + e);
-            e.printStackTrace();
-        }
         return null;
     }
 }
