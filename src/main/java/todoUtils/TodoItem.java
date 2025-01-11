@@ -1,4 +1,12 @@
 package todoUtils;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.InsertOneResult;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import todo.MongoDBConnect;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -33,6 +41,19 @@ public class TodoItem {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd / mm HH:mm");
         // DateTimeFormatter format = new DateTimeFormatter.ofPattern("dd / mm")
         StringDateTime = dateTime.format(formatter);
+        try{
+            MongoClient mongoClient = MongoDBConnect.getMongoClient();
+            MongoDatabase database = mongoClient.getDatabase("javatodo");
+            MongoCollection<Document> collection = database.getCollection("todos");
+            InsertOneResult r = collection.insertOne(new Document()
+                    .append("_id",new ObjectId())
+                    .append("text",text)
+                    .append("dateTime",StringDateTime)
+            );
+            System.out.println("Inserted: " + r);
+        }catch (Exception e){
+            System.out.println("Error in inserting: " + e);
+        }
         return this;
     }
 }
