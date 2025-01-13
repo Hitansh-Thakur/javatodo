@@ -1,12 +1,12 @@
 package todoUtils;
+
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import todo.MongoDBConnect;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -18,12 +18,14 @@ import java.time.format.DateTimeFormatter;
  * text: String
  */
 public class TodoItem {
-    public int id;
     public String text;
     public boolean check;
     LocalDateTime dateTime;
     String StringDateTime;
-
+    static MongoClient mongoClient = MongoDBConnect.getMongoClient();
+    static MongoDatabase database = mongoClient.getDatabase("javatodo");
+    static MongoCollection<Document> collection = database.getCollection("todos");
+    
 
     /**
      * setItem is a method that sets the id and text of a todo item
@@ -33,27 +35,27 @@ public class TodoItem {
      * @param text: String
      * @return TodoItem
      */
+    public TodoItem setItem(String text) {
+        return setItem(text, false);
+    }
+    
 
-    public TodoItem setItem(int id, String text) {
+    public TodoItem setItem( String text, boolean check) {
         this.text = text;
-        this.id = id;
+        this.check = check;
         dateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd / mm HH:mm");
-        // DateTimeFormatter format = new DateTimeFormatter.ofPattern("dd / mm")
         StringDateTime = dateTime.format(formatter);
-        try{
-            MongoClient mongoClient = MongoDBConnect.getMongoClient();
-            MongoDatabase database = mongoClient.getDatabase("javatodo");
-            MongoCollection<Document> collection = database.getCollection("todos");
-            InsertOneResult r = collection.insertOne(new Document()
-                    .append("_id",new ObjectId())
-                    .append("text",text)
-                    .append("dateTime",StringDateTime)
-            );
-            System.out.println("Inserted: " + r);
-        }catch (Exception e){
+        try {
+            collection.insertOne(new Document()
+                    .append("_id", new ObjectId())
+                    .append("text", text)
+                    .append("dateTime", StringDateTime)
+                    .append("check", check));
+        } catch (MongoException e) {
             System.out.println("Error in inserting: " + e);
-        }
+        }        
         return this;
     }
+
 }
