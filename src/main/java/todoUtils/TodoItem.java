@@ -4,6 +4,8 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.InsertOneResult;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import todo.MongoDBConnect;
@@ -18,6 +20,7 @@ import java.time.format.DateTimeFormatter;
  * text: String
  */
 public class TodoItem {
+    public ObjectId id;
     public String text;
     public boolean check;
     LocalDateTime dateTime;
@@ -35,27 +38,32 @@ public class TodoItem {
      * @param text: String
      * @return TodoItem
      */
-    public TodoItem setItem(String text) {
+    public ObjectId setItem(String text) {
         return setItem(text, false);
     }
     
 
-    public TodoItem setItem( String text, boolean check) {
+    public ObjectId setItem( String text, boolean check) {
         this.text = text;
         this.check = check;
+        this.id = new ObjectId();
         dateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd / mm HH:mm");
         StringDateTime = dateTime.format(formatter);
         try {
-            collection.insertOne(new Document()
-                    .append("_id", new ObjectId())
+            InsertOneResult r = collection.insertOne(new Document()
+                    .append("_id", id)
                     .append("text", text)
                     .append("dateTime", StringDateTime)
                     .append("check", check));
+                    // get document reference that is inserted
+
+
+            System.out.println("----------------------------->\n"+r);
         } catch (MongoException e) {
             System.out.println("Error in inserting: " + e);
         }        
-        return this;
+        return this.id;
     }
 
 }
