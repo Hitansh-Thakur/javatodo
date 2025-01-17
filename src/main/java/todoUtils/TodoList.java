@@ -1,25 +1,24 @@
 package todoUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.print.Doc;
+import java.util.Map;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.result.UpdateResult;
 
 import todo.MongoDBConnect;
 
 public class TodoList {
-    public static ArrayList<TodoList> Lists = new ArrayList<TodoList>();
-    ArrayList<Document> todos = new ArrayList<Document>();
-    private int cnt;
+    // public static ArrayList<TodoList> Lists = new ArrayList<TodoList>();
+    public static HashMap<Integer, TodoList> Lists = new HashMap<Integer, TodoList>();
+    static int index = 1;
+    ArrayList<ObjectId> todos = new ArrayList<ObjectId>();
     public String ListName;
     MongoClient client = MongoDBConnect.getMongoClient();
     MongoDatabase db = client.getDatabase("javatodo");
@@ -29,29 +28,40 @@ public class TodoList {
     public TodoList(String text) {
         System.out.println(todos);
         ListName = text;
-        Document doc = new Document()
-                .append("_id", ListId)
-                .append("ListName", ListName)
-                .append("list", List.of());
+
+        // Document test = new Document();
+        // can use json to make document
+        // Document test = Document.parse("{\"name\":\"Hitansh\"}");
+        // collection.insertOne(test);
+        // Creating a List in DB
+        // dont create if exist i.e if find is not null.
+        Document exists = collection.find(new Document().append("ListName", ListName)).first();
+        // System.out.println("Exists:   " + exists);
+        if (exists == null) {
+            Document doc = new Document()
+                    .append("_id", ListId)
+                    .append("ListName", ListName)
+                    .append("list", List.of());
+
+            collection.insertOne(doc);
+        }else{
+            System.out.println("List with same name Already Exist! ");
+        }
+
         // update the document
-
-        Document query = new Document().append("ListName", "Tasks");
-        // Add a new item to the list
-        // list is a field in the document of type array
-        // doc structure: {ListName: "Tasks", list: []}
-        // add "abc" to the list
-        // result : {ListName: "Tasks", list: ["abc"]}
-        // append "abc to the list"
+        // Document query = new Document().append("ListName", "Tasks");
         // Document update = new Document().append("$set", new Document().append("list",
-        // List.of().add("abc")));
-        // how to add Mongo Objects to the
-        Document update = new Document().append("$set", new Document().append("list", todos));
-
-        collection.insertOne(doc);
-        UpdateResult r = collection.updateOne(query, update);
-        System.out.println(r);
-        Lists.add(this);
+        // todos));
+        //
+        // UpdateResult r = collection.updateOne(query, update);
+        // System.out.println(r);
+        Lists.put(index, this);
+        index++;
     }
+
+    // public ObjectId getList(int index){
+
+    // }
 
     public void printList() {
         System.out.println(todos);
@@ -62,19 +72,15 @@ public class TodoList {
         // Insert TODOS:
         TodoItem item = new TodoItem();
         ObjectId todoId = item.setItem(text);
-        System.out.println("List ID ------------------> "+ ListId);
-        collection.updateOne(new Document().append("_id", ListId), new Document().append("$push", new Document().append("list", todoId)));
+        collection.updateOne(new Document().append("_id", ListId),
+                new Document().append("$push", new Document().append("list", todoId)));
 
-
-
-
-        cnt += 1;
-        ObjectId ob = new ObjectId("67853947c0342a354f6817a9");
+        // ObjectId ob = new ObjectId("67853947c0342a354f6817a9");
         // Document doc = collection.find("$eq",new Document().append("_id",
         // item.setItem(text)));
-        Document d = collection.find(new Document().append("_id", ob)).first();
+        // Document d = collection.find(new Document().append("_id", ob)).first();
 
-        todos.add(d);
+        // todos.add(d);
     }
     // public ArrayList<TodoItem> ListTodos(){
     // int no = 0;
@@ -88,10 +94,19 @@ public class TodoList {
     // return todos;
     // }
 
-    public static ArrayList<TodoList> getLists() {
-        for (TodoList list : Lists) {
-            System.out.println(list.ListName);
+    public static HashMap<Integer, TodoList> getALlLists() {
+        System.out.println(Lists);
+        for (Map.Entry<Integer, TodoList> ent : Lists.entrySet()) {
+            System.out.println(ent.getKey() + " : " + ent.getValue().ListName);
         }
         return Lists;
+    }
+
+    public static TodoList getList(int idx) {
+        System.out.println(Lists.get(idx).ListName + " list is Selected.");
+        return Lists.get(idx);
+
+        // TODO: inplement a function in main to fetch a todoList based on index
+        // provided by user
     }
 }

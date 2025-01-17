@@ -51,15 +51,22 @@ public class TodoItem {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd / mm HH:mm");
         StringDateTime = dateTime.format(formatter);
         try {
-            InsertOneResult r = collection.insertOne(new Document()
-                    .append("_id", id)
-                    .append("text", text)
-                    .append("dateTime", StringDateTime)
-                    .append("check", check));
-                    // get document reference that is inserted
-
-
-            System.out.println("----------------------------->\n"+r);
+            Document exists = collection.find(new Document().append("text", text)).first();
+            // System.out.println("Exists:   " + exists);
+            if (exists == null) {
+                InsertOneResult r = collection.insertOne(new Document()
+                        .append("_id", id)
+                        .append("text", text)
+                        .append("dateTime", StringDateTime)
+                        .append("check", check));
+                        // get document reference that is inserted
+            }else{
+                System.out.println("Task Already Exists!");
+                // we can add a ref to list in each todo item and provide name of list to user in which it exists.
+                // we could also ask users if they still want to add the task? 
+            }
+            // TODO: add Multi-threading 
+            // System.out.println("Thread ID: ---------" + Thread.currentThread().getId());
         } catch (MongoException e) {
             System.out.println("Error in inserting: " + e);
         }        

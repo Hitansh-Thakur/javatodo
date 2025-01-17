@@ -7,7 +7,8 @@ import com.mongodb.client.MongoDatabase;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 
-public class MongoDBConnect {
+public class MongoDBConnect{
+
     public static MongoClient getMongoClient() {
         // get the connection string from the environment variable
         Dotenv dotenv = Dotenv.load();
@@ -19,7 +20,7 @@ public class MongoDBConnect {
             return null;
         }
 
-        System.out.println("Connection String: " + connectionString);
+        // System.out.println("Connection String: " + connectionString);
 
         // dont define the client inside the try block or it will not be accessible
         // outside the block
