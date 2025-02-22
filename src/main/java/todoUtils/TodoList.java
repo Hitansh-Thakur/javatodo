@@ -2,14 +2,16 @@ package todoUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
+
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 
 import todo.MongoDBConnect;
@@ -23,6 +25,7 @@ public class TodoList {
     MongoClient client = MongoDBConnect.getMongoClient();
     MongoDatabase db = client.getDatabase("javatodo");
     MongoCollection<Document> collection = db.getCollection("todoList");
+    MongoCollection<Document> todosCollection = db.getCollection("todos");
     ObjectId ListId = new ObjectId();
 
     public TodoList(String text) {
@@ -64,7 +67,22 @@ public class TodoList {
     // }
 
     public void printList() {
-        System.out.println(todos);
+        System.out.println("-------------------->");
+        // TODO: fetch todos from database
+        ObjectId currId = new ObjectId("67a37d38fa4df046d667f6ad");
+        Document doc = new Document().append("_id", currId);
+        Document CurrList = collection.find(doc).first();
+        System.out.println("list id: " + ListId);
+        System.out.println("DB list: " + CurrList.get("list"));
+        // above code gets the list arr from inside the current selected list for DB.
+        // ObjectId todos[] = new ObjectId[3]
+        todos = (ArrayList<ObjectId>)CurrList.get("list");
+        //TODO: fetch individual todo from todos coll in DB.
+        for (int i = 0; i < todos.size(); i++) {
+            Document d = new Document().append("_id",todos.get(i));
+            System.out.println(todosCollection.find(d).first().get("text"));
+        }
+        System.out.println("TODOs fetched form DB: " + todos.get(0));
     }
 
     public void addItem(String text) {
@@ -72,6 +90,8 @@ public class TodoList {
         // Insert TODOS:
         TodoItem item = new TodoItem();
         ObjectId todoId = item.setItem(text);
+        todos.add(todoId);
+
         collection.updateOne(new Document().append("_id", ListId),
                 new Document().append("$push", new Document().append("list", todoId)));
 

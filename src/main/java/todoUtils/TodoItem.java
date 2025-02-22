@@ -55,7 +55,7 @@ public class TodoItem {
             // System.out.println("Exists:   " + exists);
             if (exists == null) {
                 InsertOneResult r = collection.insertOne(new Document()
-                        .append("_id", id)
+                        .append("_id", this.id)
                         .append("text", text)
                         .append("dateTime", StringDateTime)
                         .append("check", check));
