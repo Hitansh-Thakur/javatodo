@@ -22,11 +22,12 @@ public class TodoList {
     static int index = 1;
     ArrayList<ObjectId> todos = new ArrayList<ObjectId>();
     public String ListName;
+    ObjectId ListId;
+
     MongoClient client = MongoDBConnect.getMongoClient();
     MongoDatabase db = client.getDatabase("javatodo");
     MongoCollection<Document> collection = db.getCollection("todoList");
     MongoCollection<Document> todosCollection = db.getCollection("todos");
-    ObjectId ListId = new ObjectId();
 
     public TodoList(String text) {
         System.out.println(todos);
@@ -39,15 +40,17 @@ public class TodoList {
         // Creating a List in DB
         // dont create if exist i.e if find is not null.
         Document exists = collection.find(new Document().append("ListName", ListName)).first();
-        // System.out.println("Exists:   " + exists);
         if (exists == null) {
+            ListId = new ObjectId();
             Document doc = new Document()
-                    .append("_id", ListId)
-                    .append("ListName", ListName)
-                    .append("list", List.of());
-
+            .append("_id", ListId)
+            .append("ListName", ListName)
+            .append("list", List.of());
+            
             collection.insertOne(doc);
         }else{
+            // Assign the id of exsisting list to the currnt obj.
+            ListId = (ObjectId) exists.get("_id");
             System.out.println("List with same name Already Exist! ");
         }
 
@@ -62,15 +65,11 @@ public class TodoList {
         index++;
     }
 
-    // public ObjectId getList(int index){
-
-    // }
-
     public void printList() {
         System.out.println("-------------------->");
         // TODO: fetch todos from database
-        ObjectId currId = new ObjectId("67a37d38fa4df046d667f6ad");
-        Document doc = new Document().append("_id", currId);
+        // TODO: the new obj shouild not be created if list already exist or it will assign new ListId to that
+        Document doc = new Document().append("_id", this.ListId);
         Document CurrList = collection.find(doc).first();
         System.out.println("list id: " + ListId);
         System.out.println("DB list: " + CurrList.get("list"));
@@ -80,9 +79,9 @@ public class TodoList {
         //TODO: fetch individual todo from todos coll in DB.
         for (int i = 0; i < todos.size(); i++) {
             Document d = new Document().append("_id",todos.get(i));
-            System.out.println(todosCollection.find(d).first().get("text"));
+            System.out.println("### "+todosCollection.find(d).first().get("text"));
         }
-        System.out.println("TODOs fetched form DB: " + todos.get(0));
+        // System.out.println("TODOs fetched form DB: " + todos.get(0));
     }
 
     public void addItem(String text) {
@@ -92,8 +91,11 @@ public class TodoList {
         ObjectId todoId = item.setItem(text);
         todos.add(todoId);
 
-        collection.updateOne(new Document().append("_id", ListId),
+        // dont insert if todoId is null as todo already exixts
+        if (todoId!=null){
+            collection.updateOne(new Document().append("_id", ListId),
                 new Document().append("$push", new Document().append("list", todoId)));
+        }
 
         // ObjectId ob = new ObjectId("67853947c0342a354f6817a9");
         // Document doc = collection.find("$eq",new Document().append("_id",

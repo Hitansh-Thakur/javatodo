@@ -59,9 +59,13 @@ public class TodoItem {
                         .append("text", text)
                         .append("dateTime", StringDateTime)
                         .append("check", check));
+                        
                         // get document reference that is inserted
-            }else{
-                System.out.println("Task Already Exists!");
+            }
+            else{
+                return null; //if todo already exsists.
+                // TODO print the messege that todo already exixts
+                // System.out.println("Task Already Exists!");
                 // we can add a ref to list in each todo item and provide name of list to user in which it exists.
                 // we could also ask users if they still want to add the task? 
             }
